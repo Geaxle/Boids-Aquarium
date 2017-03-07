@@ -7,19 +7,17 @@ namespace aquab.boid {
 	public class School : MonoBehaviour {
 
 		[SerializeField] GameObject fish;
-		[SerializeField] int popuplation = 100;
-
-		[SerializeField] int aquariumSize = 5;
-		Vector3 aquariumDimensions;
+		[SerializeField] int popuplation = 10;
+		[SerializeField] static int aquariumSize = 5;
+		public static int SqrAquariumSize {get {return aquariumSize * aquariumSize;} }
 
 		Boid[] fishes;
-		Collider[] temporaryLocalBoidsReference;
+		Collider[] boidPool;
 
 
 		// Use this for initialization
 		void Start () {
 			CreatePopulation();
-			aquariumDimensions = new Vector3(aquariumSize*2f, aquariumSize*2f, aquariumSize*2f);
 
 		}
 		
@@ -29,9 +27,14 @@ namespace aquab.boid {
 			UpdateBoidsPosition ();
 		}
 
+		void OnDrawGizmos() {
+			Gizmos.color = Color.green;
+        	Gizmos.DrawWireSphere(Vector3.zero, aquariumSize);
+		}
+
 		void CreatePopulation () {
 			fishes = new Boid[popuplation];
-			temporaryLocalBoidsReference = new Collider[popuplation];
+			boidPool = new Collider[popuplation];
 
 			for(int i = 0; i < popuplation; i++) {
 				GameObject newFish = Instantiate(fish);
@@ -39,18 +42,23 @@ namespace aquab.boid {
 				newFish.transform.position = Random.insideUnitSphere * aquariumSize;
 				newFish.transform.rotation = Quaternion.Euler(Random.Range(-20f, 20f), Random.Range(0f, 360f), 0f );
 				fishes[i] = newFish.GetComponent<Boid>();
+				fishes[i].InitialiseBoidMemory(popuplation);
 			}
 		}
 
 		void UpdateBoidsVelocity() {
 			for(int i = 0; i < popuplation; i++) {
-				fishes[i].ComputeVelocityFromSurroundings(temporaryLocalBoidsReference);
+				fishes[i].ComputeVelocityFromSurroundings(boidPool);
 			}
 		}
 
 		void UpdateBoidsPosition () {
 			for(int i = 0; i < popuplation; i++) {
-				fishes [i].UpdatePosition ();
+				fishes[i].UpdatePosition ();
+
+				if(i==0) {
+					Debug.Log(fishes[i].Velocity);
+				}
 			}
 		}
 
